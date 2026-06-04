@@ -64,10 +64,11 @@ forwards its received signal unchanged). This is a natural baseline.
 ```python
 import torch
 DTYPE = torch.complex128
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 n_relays = M - 2          # 9
 scale = (36.0 / (n_relays * 4)) ** 0.5   # = 1.0
 F_list = [
-    (scale * torch.eye(4, dtype=DTYPE)).clone().requires_grad_(True)
+    (scale * torch.eye(4, dtype=DTYPE, device=DEVICE)).clone().requires_grad_(True)
     for _ in range(n_relays)
 ]
 ```

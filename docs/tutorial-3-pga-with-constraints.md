@@ -31,13 +31,14 @@ from gaussian_dag import (
 torch.manual_seed(0)
 d, sigma, P = 3, 0.5, 5.0
 dtype = torch.complex128
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-H = torch.randn(d, d, dtype=dtype)
-Sigma_X = torch.eye(d, dtype=dtype)
-Sigma_Z = (sigma ** 2) * torch.eye(d, dtype=dtype)
+H = torch.randn(d, d, dtype=dtype, device=DEVICE)
+Sigma_X = torch.eye(d, dtype=dtype, device=DEVICE)
+Sigma_Z = (sigma ** 2) * torch.eye(d, dtype=dtype, device=DEVICE)
 
 # The controllable precoder F: start small, ask autograd to track it.
-F = (0.1 * torch.randn(d, d, dtype=dtype)).requires_grad_(True)
+F = (0.1 * torch.randn(d, d, dtype=dtype, device=DEVICE)).requires_grad_(True)
 ```
 
 `F.requires_grad_(True)` is the signal to PyTorch that this tensor is a
@@ -134,7 +135,7 @@ You can confirm that against a closed-form computation:
 import numpy as np
 
 with torch.no_grad():
-    H_np = H.numpy()
+    H_np = H.cpu().numpy()
     eigvals = np.linalg.eigvalsh(H_np.conj().T @ H_np) / (sigma ** 2)
 
 def water_filling(eigvals, P):
@@ -169,8 +170,8 @@ to every matrix:
 ```python
 from gaussian_dag import project_total_power
 
-A_a = (0.5 * torch.randn(d, d, dtype=dtype)).requires_grad_(True)
-A_b = (0.5 * torch.randn(d, d, dtype=dtype)).requires_grad_(True)
+A_a = (0.5 * torch.randn(d, d, dtype=dtype, device=DEVICE)).requires_grad_(True)
+A_b = (0.5 * torch.randn(d, d, dtype=dtype, device=DEVICE)).requires_grad_(True)
 P_total = 4.0
 
 def shared_projector(params):

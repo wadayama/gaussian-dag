@@ -75,10 +75,13 @@ from gaussian_dag import compute_k_blocks, mutual_information_from_k
 torch.manual_seed(0)
 d, sigma = 3, 0.5
 
+# Device-agnostic: same code runs on CPU or CUDA.
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # Fixed channel and covariances.
-H = torch.randn(d, d, dtype=torch.complex128)
-Sigma_X = torch.eye(d, dtype=torch.complex128)
-Sigma_Z = (sigma ** 2) * torch.eye(d, dtype=torch.complex128)
+H = torch.randn(d, d, dtype=torch.complex128, device=DEVICE)
+Sigma_X = torch.eye(d, dtype=torch.complex128, device=DEVICE)
+Sigma_Z = (sigma ** 2) * torch.eye(d, dtype=torch.complex128, device=DEVICE)
 
 # Build the DAG: 2 nodes, one edge (0 -> 1) carrying H.
 K = compute_k_blocks(
@@ -103,12 +106,14 @@ What just happened:
 
 The returned `mi` is a scalar PyTorch tensor in **nats**.
 
-> **Running on GPU.** The library is device-agnostic. To run the snippet
-> above on a CUDA device, allocate every input tensor with `device="cuda"`
-> (or pass a `DEVICE = torch.device("cuda" if torch.cuda.is_available()
-> else "cpu")` constant). Every K-block produced by `compute_k_blocks`
-> will then live on that device, and `mutual_information_from_k` will
-> follow. See `examples/` for ready-to-run device-agnostic templates.
+> **Running on GPU.** The `DEVICE = torch.device("cuda" if ...)` line
+> above auto-detects CUDA. Every tensor we allocate passes `device=DEVICE`,
+> so the K-blocks produced by `compute_k_blocks` live on that device
+> automatically, and `mutual_information_from_k` follows. On a CPU-only
+> machine this falls back to CPU; no further change required. To force
+> CPU on a CUDA machine, edit the single line to
+> `DEVICE = torch.device("cpu")`. See `examples/` for the same pattern
+> applied to the full paper-reproduction scripts.
 
 ---
 

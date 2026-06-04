@@ -52,7 +52,8 @@ torch.manual_seed(0)
 d, sigma = 2, 0.3
 
 dtype = torch.complex128
-randn_c = lambda *s: torch.randn(*s, dtype=dtype)
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+randn_c = lambda *s: torch.randn(*s, dtype=dtype, device=DEVICE)
 
 # Edge matrices.
 A_10 = 0.5 * randn_c(d, d)   # branch precoder, V_0 -> V_1
@@ -60,8 +61,8 @@ A_20 = 0.5 * randn_c(d, d)   # branch precoder, V_0 -> V_2
 A_31 = randn_c(d, d)         # merge,           V_1 -> V_3
 A_32 = randn_c(d, d)         # merge,           V_2 -> V_3
 
-Sigma_X = torch.eye(d, dtype=dtype)
-Sigma_Z = (sigma ** 2) * torch.eye(d, dtype=dtype)
+Sigma_X = torch.eye(d, dtype=dtype, device=DEVICE)
+Sigma_Z = (sigma ** 2) * torch.eye(d, dtype=dtype, device=DEVICE)
 
 K = compute_k_blocks(
     num_nodes=4,

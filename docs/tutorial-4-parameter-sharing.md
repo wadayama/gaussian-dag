@@ -52,13 +52,14 @@ from gaussian_dag import (
 torch.manual_seed(0)
 d, sigma, P = 3, 0.4, 3.0
 dtype = torch.complex128
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-H_1 = torch.randn(d, d, dtype=dtype)    # fixed channel V_0 -> V_1
-H_2 = torch.randn(d, d, dtype=dtype)    # fixed channel V_1 -> V_2
-F_1 = (0.1 * torch.randn(d, d, dtype=dtype)).requires_grad_(True)
+H_1 = torch.randn(d, d, dtype=dtype, device=DEVICE)    # fixed channel V_0 -> V_1
+H_2 = torch.randn(d, d, dtype=dtype, device=DEVICE)    # fixed channel V_1 -> V_2
+F_1 = (0.1 * torch.randn(d, d, dtype=dtype, device=DEVICE)).requires_grad_(True)
 
-Sigma_X = torch.eye(d, dtype=dtype)
-Sigma_Z = (sigma ** 2) * torch.eye(d, dtype=dtype)
+Sigma_X = torch.eye(d, dtype=dtype, device=DEVICE)
+Sigma_Z = (sigma ** 2) * torch.eye(d, dtype=dtype, device=DEVICE)
 
 def compute_mi():
     edge_mats = {
@@ -94,10 +95,10 @@ The relay does one processing `F_1` and pushes the result through each
 outgoing channel `H_2`, `H_3`:
 
 ```python
-H_1 = torch.randn(d, d, dtype=dtype)   # V_0 -> V_1
-H_2 = torch.randn(d, d, dtype=dtype)   # V_1 -> V_2
-H_3 = torch.randn(d, d, dtype=dtype)   # V_1 -> V_3
-F_1 = (0.1 * torch.randn(d, d, dtype=dtype)).requires_grad_(True)
+H_1 = torch.randn(d, d, dtype=dtype, device=DEVICE)   # V_0 -> V_1
+H_2 = torch.randn(d, d, dtype=dtype, device=DEVICE)   # V_1 -> V_2
+H_3 = torch.randn(d, d, dtype=dtype, device=DEVICE)   # V_1 -> V_3
+F_1 = (0.1 * torch.randn(d, d, dtype=dtype, device=DEVICE)).requires_grad_(True)
 
 def compute_mi_broadcast():
     edge_mats = {
