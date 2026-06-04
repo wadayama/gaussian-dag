@@ -262,7 +262,9 @@ K-recursion + MI + PGA pipeline will follow.
 
 Two CUDA smoke tests under `tests/test_gpu_smoke.py` exercise the forward
 pass and a one-step PGA on the GPU when CUDA is available; they are
-automatically skipped on CPU-only machines.
+automatically skipped on CPU-only machines. The full pytest suite has been
+verified to pass on an NVIDIA CUDA backend (`complex128`) without any
+library-side changes.
 
 What actually runs on each backend depends on PyTorch's support for the
 underlying linear-algebra primitives (`torch.linalg.cholesky`,
@@ -270,8 +272,8 @@ underlying linear-algebra primitives (`torch.linalg.cholesky`,
 
 | Backend | `complex128` | `complex64` | real (`float32`) |
 | --- | --- | --- | --- |
-| CPU | ✓ | ✓ | ✓ |
-| CUDA | ✓ (expected; not yet verified by us) | ✓ (expected) | ✓ (expected) |
+| CPU | ✓ verified | ✓ | ✓ |
+| CUDA (NVIDIA) | ✓ verified | ✓ (expected) | ✓ (expected) |
 | MPS (Apple Silicon) | ✗ — MPS has no `float64` | ✗ — complex `linalg` not implemented for MPS | ✓ |
 
 The standard workflow uses `complex128` on CPU or CUDA. On MPS you must
@@ -310,10 +312,11 @@ needed.
   drift out of the PD cone surface as a diagnostic `ValueError`; mitigate
   with `jitter > 0` or by tightening the regularity assumptions of the
   problem (see *Conventions → Domain failures*).
-- **GPU.** Forward and backward passes are device-agnostic, but rely on
-  PyTorch's complex-linalg support on the target backend. As of
-  PyTorch 2.12, MPS does not implement complex `cholesky` / `solve` and
-  is therefore unusable for the complex pipeline (see *GPU support*).
+- **GPU.** Forward and backward passes are device-agnostic, and the full
+  pytest suite has been verified to pass on an NVIDIA CUDA backend with
+  `complex128`. As of PyTorch 2.12, MPS does not implement complex
+  `cholesky` / `solve` and is therefore unusable for the complex pipeline
+  (see *GPU support*).
 - **Numerical reproducibility.** Single-run numbers depend on the PyTorch
   / NumPy versions and the random-number generation paths therein. The
   paper figures were generated with PyTorch 2.12 on CPU; minor last-digit
