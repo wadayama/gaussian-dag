@@ -57,13 +57,22 @@ NUM_ITERS = 100
 STEP_SIZE = 0.05
 SEED = 42
 
+# Device: auto-detect CUDA, fall back to CPU. The library is device-agnostic;
+# changing this to torch.device("cpu") forces CPU execution.
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # ----------------------------- helpers -----------------------------
 
 
 def _randn_complex(shape: tuple[int, ...], gen: torch.Generator) -> torch.Tensor:
+    """Random complex tensor on DEVICE.
+
+    The PyTorch generator stays CPU-resident; we sample on CPU and move
+    the result to DEVICE.
+    """
     r = torch.randn(*shape, dtype=torch.float64, generator=gen)
     i = torch.randn(*shape, dtype=torch.float64, generator=gen)
-    return torch.complex(r, i)
+    return torch.complex(r, i).to(DEVICE)
 
 
 def _mi_for_Q(Q: torch.Tensor, H: torch.Tensor, sigma_xt: torch.Tensor,
@@ -84,7 +93,7 @@ def _mi_for_Q(Q: torch.Tensor, H: torch.Tensor, sigma_xt: torch.Tensor,
 def _waterfilling_mi(H: torch.Tensor, sigma_z2: float, p_total: float) -> float:
     """Closed-form water-filling MI for Y = H X + Z, ||Sigma_X||_tr = p_total."""
     # Eigendecomposition of H^H H: positive real eigenvalues.
-    HhH = (H.conj().T @ H).numpy()
+    HhH = (H.conj().T @ H).cpu().numpy()
     eig = np.linalg.eigvalsh(HhH).clip(min=0)
     # Water-fill on inverse channel: power on mode k is max(0, mu - sigma^2/lambda_k).
     inv_chan = np.array([sigma_z2 / lam if lam > 0 else np.inf for lam in eig])
@@ -117,9 +126,9 @@ def main() -> None:
     H = _randn_complex((D, D), gen)
     Q_init = _randn_complex((D, D), gen) * 0.1
 
-    sigma_xt = torch.eye(D, dtype=DTYPE)  # X_tilde ~ CN(0, I)
-    sigma_1 = EPS_V1 * torch.eye(D, dtype=DTYPE)
-    sigma_2 = (SIGMA_NOISE ** 2) * torch.eye(D, dtype=DTYPE)
+    sigma_xt = torch.eye(D, dtype=DTYPE, device=DEVICE)  # X_tilde ~ CN(0, I)
+    sigma_1 = EPS_V1 * torch.eye(D, dtype=DTYPE, device=DEVICE)
+    sigma_2 = (SIGMA_NOISE ** 2) * torch.eye(D, dtype=DTYPE, device=DEVICE)
 
     Q = Q_init.clone().requires_grad_(True)
 
@@ -133,7 +142,7 @@ def main() -> None:
     # Baselines.
     with torch.no_grad():
         # Uniform input shaping: Q = sqrt(P/d) * I  =>  Sigma_X = (P/d) I.
-        Q_uniform = ((P_INPUT / D) ** 0.5) * torch.eye(D, dtype=DTYPE)
+        Q_uniform = ((P_INPUT / D) ** 0.5) * torch.eye(D, dtype=DTYPE, device=DEVICE)
         mi_uniform = _mi_for_Q(Q_uniform, H, sigma_xt, sigma_1, sigma_2).item()
 
         initial_mi = compute_mi().item()
@@ -186,9 +195,9 @@ def main() -> None:
         mi_uniform=mi_uniform,
         mi_waterfilling=mi_wf,
         gap_to_wf=gap_to_wf,
-        Q_final=Q.detach().numpy(),
-        Sigma_X_final=sigma_x_emp.numpy(),
-        H=H.numpy(),
+        Q_final=Q.detach().cpu().numpy(),
+        Sigma_X_final=sigma_x_emp.cpu().numpy(),
+        H=H.cpu().numpy(),
         final_Q_norm_sq=final_norm_sq,
         tr_sigma_x=tr_sigma_x,
         config=dict(

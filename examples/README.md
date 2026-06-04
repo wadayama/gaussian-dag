@@ -42,3 +42,14 @@ top-level `.gitignore`.
 Every script seeds PyTorch and (where applicable) NumPy at the top. The
 seeds are chosen to match the paper figures; changing them will change the
 specific instance but not the qualitative conclusion.
+
+## Device
+
+Each script declares
+`DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")`
+near the top. All tensor allocations pass `device=DEVICE`, and `.numpy()`
+calls at the I/O boundary are written as `.cpu().numpy()`. The same
+script therefore runs unchanged on CPU and on CUDA; numerical results
+match between the two backends to round-off precision. To force CPU on
+a CUDA-enabled machine, edit the single `DEVICE` line to
+`torch.device("cpu")`.

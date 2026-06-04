@@ -281,10 +281,12 @@ drop to a real-valued model (`float32`). If your problem genuinely requires
 complex arithmetic, MPS is not currently a viable target — this is a
 PyTorch backend limitation, not a property of this library.
 
-The runnable scripts in `examples/` are written for CPU. If you adapt one
-of them for GPU execution, replace any `.numpy()` calls on result tensors
-with `.cpu().numpy()` at the I/O boundary; no library-side change is
-needed.
+The runnable scripts in `examples/` are device-agnostic: each declares
+`DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")`
+near the top, all tensor allocations pass `device=DEVICE`, and `.numpy()`
+calls at the I/O boundary are written as `.cpu().numpy()`. The same
+script therefore runs unchanged on CPU and on CUDA. To force CPU on a
+CUDA machine, edit the single `DEVICE` line to `torch.device("cpu")`.
 
 ---
 

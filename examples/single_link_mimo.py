@@ -43,13 +43,22 @@ NUM_ITERS = 100
 STEP_SIZE = 0.05       # PGA step size
 SEED = 42
 
+# Device: auto-detect CUDA, fall back to CPU. The library is device-agnostic;
+# changing this to torch.device("cpu") forces CPU execution.
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # ----------------------------- helpers -----------------------------
 
 
 def _randn_complex(shape: tuple[int, ...], gen: torch.Generator) -> torch.Tensor:
+    """Random complex tensor on DEVICE.
+
+    The PyTorch generator stays CPU-resident (torch.Generator() does not
+    follow .cuda()); we sample on CPU and move the result to DEVICE.
+    """
     r = torch.randn(*shape, dtype=torch.float64, generator=gen)
     i = torch.randn(*shape, dtype=torch.float64, generator=gen)
-    return torch.complex(r, i)
+    return torch.complex(r, i).to(DEVICE)
 
 
 def _compute_mi_for_F(F: torch.Tensor, H: torch.Tensor,
@@ -68,7 +77,8 @@ def _waterfilling_mi(H: torch.Tensor, sigma_sq: float, P: float,
     """
     # Singular values of H (descending order from torch); s_i^2 are the eigenvalues
     # of H^H H = V Lambda V^H.
-    s = torch.linalg.svdvals(H).real.double()
+    # SVD on CPU for portability of the CPU-only reference path below.
+    s = torch.linalg.svdvals(H.cpu()).real.double()
     lam = s ** 2  # eigenvalues of H^H H
     noise_eq = sigma_sq / lam.clamp(min=1e-15)  # 1/(s_i^2 / sigma^2)
 
@@ -103,8 +113,8 @@ def main() -> None:
     H = _randn_complex((D, D), gen)
     F_init = _randn_complex((D, D), gen) * 0.1  # small initial precoder
 
-    sigma_x = torch.eye(D, dtype=DTYPE)
-    sigma_z = (SIGMA_NOISE ** 2) * torch.eye(D, dtype=DTYPE)
+    sigma_x = torch.eye(D, dtype=DTYPE, device=DEVICE)
+    sigma_z = (SIGMA_NOISE ** 2) * torch.eye(D, dtype=DTYPE, device=DEVICE)
 
     # Make F a learnable parameter.
     F = F_init.clone().requires_grad_(True)
@@ -118,7 +128,7 @@ def main() -> None:
 
     # Baseline: uniform allocation F = sqrt(P/d) * I.
     with torch.no_grad():
-        F_uniform = ((P_BUDGET / D) ** 0.5) * torch.eye(D, dtype=DTYPE)
+        F_uniform = ((P_BUDGET / D) ** 0.5) * torch.eye(D, dtype=DTYPE, device=DEVICE)
         mi_uniform = _compute_mi_for_F(F_uniform, H, sigma_x, sigma_z).item()
 
     # Baseline: theoretical waterfilling optimum.
@@ -164,8 +174,8 @@ def main() -> None:
         mi_uniform=mi_uniform,
         mi_optimal=mi_optimal,
         p_optimal=p_optimal,
-        final_F=F.detach().numpy(),
-        H=H.numpy(),
+        final_F=F.detach().cpu().numpy(),
+        H=H.cpu().numpy(),
         final_F_norm_sq=final_norm_sq,
         config=dict(
             d=D, sigma_noise=SIGMA_NOISE, P_budget=P_BUDGET,

@@ -59,13 +59,22 @@ NUM_ITERS = 100
 STEP_SIZE = 0.05
 SEED = 42
 
+# Device: auto-detect CUDA, fall back to CPU. The library is device-agnostic;
+# changing this to torch.device("cpu") forces CPU execution.
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # ----------------------------- helpers -----------------------------
 
 
 def _randn_complex(shape: tuple[int, ...], gen: torch.Generator) -> torch.Tensor:
+    """Random complex tensor on DEVICE.
+
+    The PyTorch generator stays CPU-resident; we sample on CPU and move
+    the result to DEVICE.
+    """
     r = torch.randn(*shape, dtype=torch.float64, generator=gen)
     i = torch.randn(*shape, dtype=torch.float64, generator=gen)
-    return torch.complex(r, i)
+    return torch.complex(r, i).to(DEVICE)
 
 
 def _build_diamond_k(A10: torch.Tensor, A20: torch.Tensor,
@@ -131,8 +140,8 @@ def main() -> None:
     A10 = A10_init.clone().requires_grad_(True)
     A20 = A20_init.clone().requires_grad_(True)
 
-    sigma_x = torch.eye(D, dtype=DTYPE)
-    sigma_n = (SIGMA_NOISE ** 2) * torch.eye(D, dtype=DTYPE)
+    sigma_x = torch.eye(D, dtype=DTYPE, device=DEVICE)
+    sigma_n = (SIGMA_NOISE ** 2) * torch.eye(D, dtype=DTYPE, device=DEVICE)
 
     def compute_mi() -> torch.Tensor:
         K = _build_diamond_k(A10, A20, A31_const, A32_const, sigma_x, sigma_n)
@@ -215,10 +224,10 @@ def main() -> None:
         history_K21=np.array(history_K21, dtype=np.float64),
         initial_mi=initial_mi,
         final_mi=final_mi,
-        A10_final=A10.detach().numpy(),
-        A20_final=A20.detach().numpy(),
-        A31_const=A31_const.numpy(),
-        A32_const=A32_const.numpy(),
+        A10_final=A10.detach().cpu().numpy(),
+        A20_final=A20.detach().cpu().numpy(),
+        A31_const=A31_const.cpu().numpy(),
+        A32_const=A32_const.cpu().numpy(),
         norm_total=norm_total,
         diag_init=diag_init,
         diag_final=diag_final,

@@ -103,6 +103,13 @@ What just happened:
 
 The returned `mi` is a scalar PyTorch tensor in **nats**.
 
+> **Running on GPU.** The library is device-agnostic. To run the snippet
+> above on a CUDA device, allocate every input tensor with `device="cuda"`
+> (or pass a `DEVICE = torch.device("cuda" if torch.cuda.is_available()
+> else "cpu")` constant). Every K-block produced by `compute_k_blocks`
+> will then live on that device, and `mutual_information_from_k` will
+> follow. See `examples/` for ready-to-run device-agnostic templates.
+
 ---
 
 ## 4. What is next?

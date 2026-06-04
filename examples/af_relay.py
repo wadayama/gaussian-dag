@@ -47,13 +47,22 @@ NUM_ITERS = 100
 STEP_SIZE = 0.05
 SEED = 42
 
+# Device: auto-detect CUDA, fall back to CPU. The library is device-agnostic;
+# changing this to torch.device("cpu") forces CPU execution.
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # ----------------------------- helpers -----------------------------
 
 
 def _randn_complex(shape: tuple[int, ...], gen: torch.Generator) -> torch.Tensor:
+    """Random complex tensor on DEVICE.
+
+    The PyTorch generator stays CPU-resident; we sample on CPU and move
+    the result to DEVICE.
+    """
     r = torch.randn(*shape, dtype=torch.float64, generator=gen)
     i = torch.randn(*shape, dtype=torch.float64, generator=gen)
-    return torch.complex(r, i)
+    return torch.complex(r, i).to(DEVICE)
 
 
 def _mi_for_R(R: torch.Tensor, H1: torch.Tensor, H2: torch.Tensor,
@@ -86,8 +95,8 @@ def main() -> None:
     H2 = _randn_complex((D, D), gen)
     R_init = _randn_complex((D, D), gen) * 0.1
 
-    sigma_x = torch.eye(D, dtype=DTYPE)
-    sigma_n = (SIGMA_NOISE ** 2) * torch.eye(D, dtype=DTYPE)
+    sigma_x = torch.eye(D, dtype=DTYPE, device=DEVICE)
+    sigma_n = (SIGMA_NOISE ** 2) * torch.eye(D, dtype=DTYPE, device=DEVICE)
 
     R = R_init.clone().requires_grad_(True)
 
@@ -101,11 +110,11 @@ def main() -> None:
     # Baselines.
     with torch.no_grad():
         # Uniform amplification: R = sqrt(P/d) * I.
-        R_uniform = ((P_R / D) ** 0.5) * torch.eye(D, dtype=DTYPE)
+        R_uniform = ((P_R / D) ** 0.5) * torch.eye(D, dtype=DTYPE, device=DEVICE)
         mi_uniform = _mi_for_R(R_uniform, H1, H2, sigma_x, sigma_n, sigma_n).item()
 
         # "No relay" reference: PGA on a tiny relay → effectively no signal forwarded.
-        R_tiny = 1e-6 * torch.eye(D, dtype=DTYPE)
+        R_tiny = 1e-6 * torch.eye(D, dtype=DTYPE, device=DEVICE)
         mi_no_relay = _mi_for_R(R_tiny, H1, H2, sigma_x, sigma_n, sigma_n).item()
 
         initial_mi = compute_mi().item()
@@ -147,9 +156,9 @@ def main() -> None:
         final_mi=final_mi,
         mi_uniform=mi_uniform,
         mi_no_relay=mi_no_relay,
-        R_final=R.detach().numpy(),
-        H1=H1.numpy(),
-        H2=H2.numpy(),
+        R_final=R.detach().cpu().numpy(),
+        H1=H1.cpu().numpy(),
+        H2=H2.cpu().numpy(),
         final_R_norm_sq=final_norm_sq,
         config=dict(
             d=D, sigma_noise=SIGMA_NOISE, P_R=P_R,

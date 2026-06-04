@@ -39,6 +39,10 @@ from gaussian_dag import (
 
 DTYPE = torch.complex128
 
+# Device: auto-detect CUDA, fall back to CPU. The library is device-agnostic;
+# changing this to torch.device("cpu") forces CPU execution.
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # ---------------------------------------------------------------------------
 # Configuration (Fig. 5 reference setting)
 # ---------------------------------------------------------------------------
@@ -127,7 +131,7 @@ def build_random_network(
     for (j, i) in edges:
         real = torch.randn(d, d, generator=torch_rng, dtype=torch.float64)
         imag = torch.randn(d, d, generator=torch_rng, dtype=torch.float64)
-        H[(j, i)] = scale * torch.complex(real, imag).to(DTYPE)
+        H[(j, i)] = scale * torch.complex(real, imag).to(dtype=DTYPE, device=DEVICE)
 
     return M, parents, edges, node_layer, H
 
@@ -186,7 +190,7 @@ def run_optimisation() -> dict[str, np.ndarray]:
     # Uniform initialisation: identity processing at every relay, equal share.
     scale = (TOTAL_POWER / (n_relays * D)) ** 0.5
     F_list = [
-        (scale * torch.eye(D, dtype=DTYPE)).clone().requires_grad_(True)
+        (scale * torch.eye(D, dtype=DTYPE, device=DEVICE)).clone().requires_grad_(True)
         for _ in range(n_relays)
     ]
     power_init = np.array(
@@ -211,7 +215,7 @@ def run_optimisation() -> dict[str, np.ndarray]:
     power_final = np.array(
         [float(f.detach().norm() ** 2) for f in F_list], dtype=np.float64,
     )
-    F_final = np.stack([f.detach().numpy() for f in F_list])
+    F_final = np.stack([f.detach().cpu().numpy() for f in F_list])
 
     return {
         "mi_history": np.array(mi_history, dtype=np.float64),
