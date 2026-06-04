@@ -22,4 +22,5 @@ wheels/
 # Example/tutorial outputs
 examples/results/
 examples/figures/
-docs/figures/
+# docs/figures/ holds hero images checked into the repo (e.g., README banners).
+# Do NOT gitignore it.
