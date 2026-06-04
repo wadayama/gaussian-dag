@@ -134,9 +134,7 @@ The 9 matrices share a single total power budget. We use
 from gaussian_dag import pga_ascent, project_total_power
 
 def projector(params):
-    projected = project_total_power(params, total_power=36.0)
-    for p, p_proj in zip(params, projected):
-        p.copy_(p_proj)
+    return project_total_power(params, 36.0)
 
 history = pga_ascent(
     lambda: endpoint_mi(F_list, H, parents, M, 4, noise_var=1.0),
