@@ -22,14 +22,19 @@ This is the reference implementation accompanying the paper
 Differentiation for Linear Gaussian Wireless Networks*
 (Wadayama & Na, arXiv preprint, 2026 — citation block below).
 
-![PGA trajectories across four DAG topologies](docs/figures/pga_gallery.png)
+![Four DAG topologies handled by the same library](docs/figures/topology4.png)
 
-*One library, four topologies. PGA on the analytic information gradient
-across (a) single-link MIMO, (b) a diamond DAG, (c) a two-hop
-amplify-and-forward relay, and (d) input-covariance shaping via a virtual
-edge. The same code reaches the classical water-filling optimum where it
-exists ((a) and (d)) and improves the MI in topologies beyond standard
-closed-form designs. Reproduce with the scripts under `examples/`.*
+*One library, four topologies. From left to right: (a) single-link MIMO
+with controllable precoder `F`, (b) a diamond DAG with controllable
+branch precoders `A_{2,1}` and `A_{3,1}` and fixed merging matrices
+`A_{4,2}, A_{4,3}`, (c) a two-hop amplify-and-forward relay with
+controllable relay gain `R`, and (d) input-covariance shaping via a
+virtual edge with controllable input shaper `Q`. Controllable factors
+and the edges that carry them are drawn in red; fixed channels in
+black; dashed gray arrows are additive Gaussian noise injections. The same
+`compute_k_blocks` + `pga_ascent` pipeline drives all four; runnable
+scripts under `examples/` reproduce the corresponding MI trajectories
+(see also Fig. 4 of the paper).*
 
 > **Funding.** This work was supported by JST, CRONOS, Japan
 > Grant Number **JPMJCS25N5**.
