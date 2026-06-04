@@ -1,0 +1,25 @@
+# Python build artefacts
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info/
+
+# Virtual environments
+.venv/
+
+# Pytest
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# Example/tutorial outputs
+examples/results/
+examples/figures/
+docs/figures/
