@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue.svg)](https://www.python.org/)
 
-Mutual-information evaluation and gradient-based optimisation for linear
+Mutual-information evaluation and gradient-based optimization for linear
 Gaussian directed acyclic graphs (DAGs) via the *K-recursion*: a single
 topology-agnostic forward pass that produces every cross- and auto-covariance
 block needed by the log-det mutual information
@@ -120,7 +120,7 @@ mi = mutual_information_from_k(K, output_node=1, input_node=0)
 print(f"I(X; Y) = {mi.item():.4f} nats")
 ```
 
-### Optimise a precoder by projected gradient ascent
+### Optimize a precoder by projected gradient ascent
 
 Replace the channel with `H @ F` for a learnable precoder `F` under the
 Frobenius power budget `‖F‖_F² ≤ P`. Autograd flows through the K-recursion,
@@ -247,11 +247,11 @@ places) on CPU with PyTorch 2.12 and IEEE double precision.
 
 | Script | What it demonstrates |
 | --- | --- |
-| `single_link_mimo.py` (Fig. 4 (a)) | MIMO precoder optimisation; PGA matches the classical water-filling optimum. |
-| `diamond_dag.py` (Fig. 4 (b)) | Branch-precoder optimisation on a 4-node diamond DAG; tracks the contribution of the parent cross-covariance to the merging-node block. |
+| `single_link_mimo.py` (Fig. 4 (a)) | MIMO precoder optimization; PGA matches the classical water-filling optimum. |
+| `diamond_dag.py` (Fig. 4 (b)) | Branch-precoder optimization on a 4-node diamond DAG; tracks the contribution of the parent cross-covariance to the merging-node block. |
 | `af_relay.py` (Fig. 4 (c)) | 2-hop amplify-and-forward relay; the relay gain `R` is the controllable factor of the edge matrix `A_{2,1} = H_2 R`. |
-| `input_covariance.py` (Fig. 4 (d)) | Input-covariance shaping via a *virtual edge* `X = Q X̃` with `X̃ ~ CN(0, I)`; recovers the water-filling optimum through a generic edge-matrix optimisation. |
-| `multilayer_network.py` (Fig. 5) | Multi-layer Gaussian network (11 nodes, 5 layers, 17 edges) with 9 broadcast relays optimised under a shared total-power budget. Reproduces Fig. 5 of the paper. |
+| `input_covariance.py` (Fig. 4 (d)) | Input-covariance shaping via a *virtual edge* `X = Q X̃` with `X̃ ~ CN(0, I)`; recovers the water-filling optimum through a generic edge-matrix optimization. |
+| `multilayer_network.py` (Fig. 5) | Multi-layer Gaussian network (11 nodes, 5 layers, 17 edges) with 9 broadcast relays optimized under a shared total-power budget. Reproduces Fig. 5 of the paper. |
 
 ### Multi-layer network: discovered non-uniform power allocation
 
@@ -261,9 +261,9 @@ places) on CPU with PyTorch 2.12 and IEEE double precision.
 
 The same K-recursion + PGA pipeline that drove the four panels above
 scales to an arbitrary multi-layer DAG. Above: a randomly generated
-network of 11 nodes spanning 5 layers, with 9 relay nodes optimised
+network of 11 nodes spanning 5 layers, with 9 relay nodes optimized
 jointly under a *shared* total-power budget `P = 36`. Top panel:
-relay nodes shaded by their optimised power `‖F_i*‖_F²`, revealing
+relay nodes shaded by their optimized power `‖F_i*‖_F²`, revealing
 the non-uniform allocation discovered by PGA. Bottom panel: end-to-end
 mutual information rising from the uniform-allocation baseline of
 `4.56 nats` to `9.28 nats` over `120` projected-gradient iterations.
@@ -281,7 +281,7 @@ A five-part walkthrough is available under `docs/`:
 
 1. [Installation and your first MI evaluation](docs/tutorial-1-installation-and-first-mi.md)
 2. [Building a DAG and reading K-blocks](docs/tutorial-2-building-a-dag.md)
-3. [PGA optimisation with constraints](docs/tutorial-3-pga-with-constraints.md)
+3. [PGA optimization with constraints](docs/tutorial-3-pga-with-constraints.md)
 4. [Parameter sharing (relay broadcast)](docs/tutorial-4-parameter-sharing.md)
 5. [Reproducing Fig. 5 of the paper](docs/tutorial-5-reproducing-fig5.md)
 
@@ -339,7 +339,7 @@ CUDA machine, edit the single `DEVICE` line to `torch.device("cpu")`.
   exposes only the already-composed `edge_mats[(j, i)] = A_{j,i}`. This
   keeps the core minimal but means users compose factors themselves
   (typical pattern: `H @ F` for a precoder, `H[(j, i)] @ F_i` for a relay).
-- **Optimisation.** `pga_ascent` is intentionally minimal: constant
+- **Optimization.** `pga_ascent` is intentionally minimal: constant
   step size, no momentum, no line search, no early stopping. Non-convex
   objectives are reached only to stationary points; multi-start is
   recommended for production use.
