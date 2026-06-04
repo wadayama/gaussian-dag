@@ -95,7 +95,7 @@ def _waterfilling_mi(H: torch.Tensor, sigma_sq: float, P: float,
 
     p = torch.clamp(torch.tensor(v_high, dtype=torch.float64) - noise_eq, min=0.0)
     mi = torch.sum(torch.log1p(p * lam / sigma_sq)).item()
-    return mi, p.numpy()
+    return mi, p.cpu().numpy()
 
 
 # ----------------------------- main -----------------------------
