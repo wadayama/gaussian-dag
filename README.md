@@ -22,6 +22,15 @@ This is the reference implementation accompanying the paper
 Differentiation for Linear Gaussian Wireless Networks*
 (Wadayama & Na, arXiv preprint, 2026 — citation block below).
 
+![PGA trajectories across four DAG topologies](docs/figures/pga_gallery.png)
+
+*One library, four topologies. PGA on the analytic information gradient
+across (a) single-link MIMO, (b) a diamond DAG, (c) a two-hop
+amplify-and-forward relay, and (d) input-covariance shaping via a virtual
+edge. The same code reaches the classical water-filling optimum where it
+exists ((a) and (d)) and improves the MI in topologies beyond standard
+closed-form designs. Reproduce with the scripts under `examples/`.*
+
 > **Funding.** This work was supported by JST, CRONOS, Japan
 > Grant Number **JPMJCS25N5**.
 
@@ -238,6 +247,26 @@ places) on CPU with PyTorch 2.12 and IEEE double precision.
 | `af_relay.py` (Fig. 4 (c)) | 2-hop amplify-and-forward relay; the relay gain `R` is the controllable factor of the edge matrix `A_{2,1} = H_2 R`. |
 | `input_covariance.py` (Fig. 4 (d)) | Input-covariance shaping via a *virtual edge* `X = Q X̃` with `X̃ ~ CN(0, I)`; recovers the water-filling optimum through a generic edge-matrix optimisation. |
 | `multilayer_network.py` (Fig. 5) | Multi-layer Gaussian network (11 nodes, 5 layers, 17 edges) with 9 broadcast relays optimised under a shared total-power budget. Reproduces Fig. 5 of the paper. |
+
+### Multi-layer network: discovered non-uniform power allocation
+
+<p align="center">
+  <img src="docs/figures/multilayer_network.png" alt="Multi-layer network: topology + MI curve" width="45%">
+</p>
+
+The same K-recursion + PGA pipeline that drove the four panels above
+scales to an arbitrary multi-layer DAG. Above: a randomly generated
+network of 11 nodes spanning 5 layers, with 9 relay nodes optimised
+jointly under a *shared* total-power budget `P = 36`. Top panel:
+relay nodes shaded by their optimised power `‖F_i*‖_F²`, revealing
+the non-uniform allocation discovered by PGA. Bottom panel: end-to-end
+mutual information rising from the uniform-allocation baseline of
+`4.56 nats` to `9.28 nats` over `120` projected-gradient iterations.
+No per-topology gradient was derived: one K-recursion forward pass
+through the graph plus one reverse-mode AD sweep produces the Wirtinger
+gradient at every relay simultaneously, and the shared-budget
+projection distributes the power network-wide. See
+`examples/multilayer_network.py`.
 
 ---
 
