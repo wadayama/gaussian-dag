@@ -179,6 +179,7 @@ from gaussian_dag import (
 | Symbol | Module | Purpose |
 | --- | --- | --- |
 | `compute_k_blocks(num_nodes, parents, edge_mats, input_cov, noise_covs, *, symmetrize_self_blocks=True)` | `krecursion` | Forward pass of the K-recursion. Returns a dict of canonical blocks `K[(j,k)]` for `0 ≤ k ≤ j < num_nodes`. |
+| `compute_effective_channel(num_nodes, parents, edge_mats, noise_covs, *, source_dim=None, symmetrize_self_blocks=True)` | `krecursion` | Collapse the DAG to an equivalent linear Gaussian channel `Y = G_M X + R_M`. Returns `(G, C)`: effective channel matrices `G[j]` (shape `d_j × d_X`, `G[0]=I`) and effective-noise covariance blocks `C[(j,k)]` (same canonical convention as `K`). Satisfies `K_{jk} = G_j Σ_X G_k^H + C_{jk}`; MI `= log det(G_M Σ_X G_M^H + C_MM) − log det C_MM`. Differentiable. |
 | `get_K(K, a, b)` | `krecursion` | Read `K_{ab}` from the canonical dict, applying the Hermitian flip `K_{ab} = K_{ba}^H` when `a < b`. |
 | `hermitianize(A)` | `krecursion` | Return `(A + A^H) / 2`. Used to enforce Hermitian structure against floating-point drift. |
 | `mutual_information_from_k(K, output_node, input_node=0, *, jitter=0.0)` | `information` | Compute `I(X; Y) = log det Σ_Y − log det Σ_{Y\|X}` from K-blocks via Cholesky + Schur complement. Differentiable. |

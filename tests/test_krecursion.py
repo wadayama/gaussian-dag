@@ -2,9 +2,16 @@
 
 from __future__ import annotations
 
+import pytest
 import torch
 
-from gaussian_dag.krecursion import compute_k_blocks, get_K, hermitianize
+from gaussian_dag.information import logdet_hpd, mutual_information_from_k
+from gaussian_dag.krecursion import (
+    compute_effective_channel,
+    compute_k_blocks,
+    get_K,
+    hermitianize,
+)
 
 
 DTYPE = torch.complex128
@@ -272,3 +279,170 @@ def test_diamond_brute_force_K33():
         "K_{3,3} from compute_k_blocks disagrees with the brute-force "
         "expansion from independent (X, Z_1, Z_2, Z_3)."
     )
+
+
+# ============================================================
+# Effective-channel representation: compute_effective_channel
+# ============================================================
+
+
+def _chain_problem(d: int = 2):
+    """Two-hop chain V_0 -> V_1 -> V_2 with random edges/noise."""
+    M = 3
+    A10 = _randn_complex(d, d, seed=1)
+    A21 = _randn_complex(d, d, seed=2)
+    parents = {1: [0], 2: [1]}
+    edge_mats = {(1, 0): A10, (2, 1): A21}
+    noise_covs = {1: _hermitian_psd(d, seed=11), 2: _hermitian_psd(d, seed=12)}
+    return M, parents, edge_mats, noise_covs
+
+
+def _diamond_problem(d: int = 2):
+    """Diamond V_0 -> {V_1, V_2} -> V_3."""
+    M = 4
+    edge_mats = {
+        (1, 0): _randn_complex(d, d, seed=1),
+        (2, 0): _randn_complex(d, d, seed=2),
+        (3, 1): _randn_complex(d, d, seed=3),
+        (3, 2): _randn_complex(d, d, seed=4),
+    }
+    parents = {1: [0], 2: [0], 3: [1, 2]}
+    noise_covs = {
+        1: _hermitian_psd(d, seed=11),
+        2: _hermitian_psd(d, seed=12),
+        3: _hermitian_psd(d, seed=13),
+    }
+    return M, parents, edge_mats, noise_covs
+
+
+def test_effective_channel_G0_identity():
+    M, parents, edge_mats, noise_covs = _chain_problem(d=2)
+    G, C = compute_effective_channel(M, parents, edge_mats, noise_covs)
+    assert torch.allclose(G[0], torch.eye(2, dtype=DTYPE), atol=1e-12)
+    assert torch.allclose(C[(0, 0)], torch.zeros(2, 2, dtype=DTYPE), atol=1e-12)
+
+
+def test_K_equals_G_sigma_G_plus_C_chain():
+    M, parents, edge_mats, noise_covs = _chain_problem(d=2)
+    sigma_x = _hermitian_psd(2, seed=20)
+    K = compute_k_blocks(M, parents, edge_mats, sigma_x, noise_covs)
+    G, C = compute_effective_channel(M, parents, edge_mats, noise_covs)
+    for (j, k) in K:
+        rebuilt = G[j] @ sigma_x @ G[k].mH + C[(j, k)]
+        assert torch.allclose(K[(j, k)], rebuilt, atol=1e-10), (
+            f"K_{{{j},{k}}} != G_j Sigma_X G_k^H + C_{{{j},{k}}} (chain)."
+        )
+
+
+def test_K_equals_G_sigma_G_plus_C_diamond():
+    M, parents, edge_mats, noise_covs = _diamond_problem(d=2)
+    sigma_x = _hermitian_psd(2, seed=21)
+    K = compute_k_blocks(M, parents, edge_mats, sigma_x, noise_covs)
+    G, C = compute_effective_channel(M, parents, edge_mats, noise_covs)
+    for (j, k) in K:
+        rebuilt = G[j] @ sigma_x @ G[k].mH + C[(j, k)]
+        assert torch.allclose(K[(j, k)], rebuilt, atol=1e-10), (
+            f"K_{{{j},{k}}} != G_j Sigma_X G_k^H + C_{{{j},{k}}} (diamond)."
+        )
+
+
+def test_effective_channel_mi_identity():
+    for builder, seed in ((_chain_problem, 30), (_diamond_problem, 31)):
+        M, parents, edge_mats, noise_covs = builder(d=2)
+        sigma_x = _hermitian_psd(2, seed=seed)
+        K = compute_k_blocks(M, parents, edge_mats, sigma_x, noise_covs)
+        I_ref = mutual_information_from_k(K, output_node=M - 1, input_node=0)
+        G, C = compute_effective_channel(M, parents, edge_mats, noise_covs)
+        C_MM = C[(M - 1, M - 1)]
+        I_eff = logdet_hpd(G[M - 1] @ sigma_x @ G[M - 1].mH + C_MM) - logdet_hpd(C_MM)
+        assert torch.allclose(I_eff, I_ref, atol=1e-10), (
+            f"effective-channel MI disagrees with mutual_information_from_k "
+            f"(builder={builder.__name__})."
+        )
+
+
+def test_effective_channel_G_recursion_explicit():
+    M, parents, edge_mats, noise_covs = _diamond_problem(d=2)
+    G, _ = compute_effective_channel(M, parents, edge_mats, noise_covs)
+    assert torch.allclose(G[1], edge_mats[(1, 0)], atol=1e-12)
+    assert torch.allclose(G[2], edge_mats[(2, 0)], atol=1e-12)
+    G3_expected = edge_mats[(3, 1)] @ edge_mats[(1, 0)] + edge_mats[(3, 2)] @ edge_mats[(2, 0)]
+    assert torch.allclose(G[3], G3_expected, atol=1e-10)
+
+
+def test_effective_channel_dX_inference():
+    # Non-square source: d_X = 2, downstream dims = 3.
+    d_x, d = 2, 3
+    A10 = _randn_complex(d, d_x, seed=1)
+    A21 = _randn_complex(d, d, seed=2)
+    parents = {1: [0], 2: [1]}
+    edge_mats = {(1, 0): A10, (2, 1): A21}
+    noise_covs = {1: _hermitian_psd(d, seed=11), 2: _hermitian_psd(d, seed=12)}
+
+    G_inf, C_inf = compute_effective_channel(3, parents, edge_mats, noise_covs)
+    assert torch.allclose(G_inf[0], torch.eye(d_x, dtype=DTYPE), atol=1e-12)
+    assert G_inf[1].shape == (d, d_x)
+    assert G_inf[2].shape == (d, d_x)
+
+    # Explicit source_dim must give the identical result.
+    G_exp, _ = compute_effective_channel(
+        3, parents, edge_mats, noise_covs, source_dim=d_x
+    )
+    for j in range(3):
+        assert torch.allclose(G_inf[j], G_exp[j], atol=1e-12)
+
+
+def test_effective_channel_device_agnostic_smoke():
+    M, parents, edge_mats, noise_covs = _diamond_problem(d=2)
+    G, C = compute_effective_channel(M, parents, edge_mats, noise_covs)
+    ref = edge_mats[(1, 0)]
+    for t in list(G.values()) + list(C.values()):
+        assert t.dtype == ref.dtype
+        assert t.device == ref.device
+
+
+def test_effective_channel_degenerate_and_errors():
+    # (1) d_X not inferable (no edge into node 0) and no source_dim -> ValueError.
+    with pytest.raises(ValueError):
+        compute_effective_channel(1, {}, {}, {})
+
+    # (2) dtype/device not inferable (no edge or noise tensor) -> ValueError.
+    with pytest.raises(ValueError):
+        compute_effective_channel(1, {}, {}, {}, source_dim=2)
+
+    # (3) source_dim disagrees with the dimension implied by edge into node 0.
+    with pytest.raises(ValueError):
+        compute_effective_channel(
+            2,
+            {1: [0]},
+            {(1, 0): _randn_complex(2, 2, seed=1)},
+            {1: _hermitian_psd(2, seed=9)},
+            source_dim=3,
+        )
+
+    # (4) Inherited validation: non-root with empty parents -> ValueError.
+    with pytest.raises(ValueError):
+        compute_effective_channel(
+            3,
+            {1: [0], 2: []},
+            {(1, 0): _randn_complex(2, 2, seed=1)},
+            {1: _hermitian_psd(2, seed=9), 2: _hermitian_psd(2, seed=10)},
+        )
+
+
+def test_effective_channel_symmetrize_passthrough():
+    M, parents, edge_mats, noise_covs = _diamond_problem(d=2)
+    # symmetrize=True -> C_{MM} Hermitian.
+    _, C_sym = compute_effective_channel(M, parents, edge_mats, noise_covs)
+    C_MM = C_sym[(M - 1, M - 1)]
+    assert torch.allclose(C_MM, C_MM.mH, atol=1e-12)
+    # symmetrize=False -> identical to compute_k_blocks(zeros, symmetrize=False).
+    d_x = edge_mats[(1, 0)].shape[1]
+    zeros = torch.zeros(d_x, d_x, dtype=DTYPE)
+    K0 = compute_k_blocks(
+        M, parents, edge_mats, zeros, noise_covs, symmetrize_self_blocks=False
+    )
+    _, C_nosym = compute_effective_channel(
+        M, parents, edge_mats, noise_covs, symmetrize_self_blocks=False
+    )
+    assert torch.allclose(C_nosym[(M - 1, M - 1)], K0[(M - 1, M - 1)], atol=1e-12)
