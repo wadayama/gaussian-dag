@@ -36,6 +36,19 @@ black; dashed gray arrows are additive Gaussian noise injections. The same
 scripts under `examples/` reproduce the corresponding MI trajectories
 (see also Fig. 4 of the paper).*
 
+## Sister libraries
+
+`gaussian-dag` is one of four standalone members of the Gaussian-DAG
+family, all sharing the same K-recursion / complex-autograd /
+projected-gradient design and vendoring identical numerical primitives:
+
+| Library | Scope | When to use |
+| --- | --- | --- |
+| [`gaussian-dag`](https://github.com/wadayama/gaussian-dag) | Single-pair MI on deterministic linear Gaussian DAGs (parent). | Single-link MIMO, multi-hop AF relay, diamond, input-covariance shaping. |
+| [`cmi-dag`](https://github.com/wadayama/cmi-dag) | Multi-root + conditional MI on arbitrary disjoint subsets; rate-region facets. | MAC, BC, IC, wiretap, multi-terminal rate regions. |
+| [`bussgang-dag`](https://github.com/wadayama/bussgang-dag) | Nonlinear node elements via Bussgang surrogate MI. | Soft-clipping PAs, low-resolution ADCs, hard-decision relays. |
+| [`fading-dag`](https://github.com/wadayama/fading-dag) | Random channel matrices via mini-batched Monte Carlo; ergodic capacity and outage. | Rayleigh / Ricean / Kronecker-correlated fading. |
+
 > **Funding.** This work was supported by JST, CRONOS, Japan
 > Grant Number **JPMJCS25N5**.
 
