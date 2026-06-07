@@ -276,21 +276,20 @@ fixed-point iteration.
 For a real-valued $f : \mathbb{C}^{p \times q} \to \mathbb{R}$, the
 **conjugate-side Wirtinger gradient** is
 
-$$\nabla_{\Theta^*} f := ( \partial f / \partial \Theta^* )^{\mathsf{T}},$$
+$$\nabla_{\Theta^{\ast}} f := ( \partial f / \partial \Theta^{\ast} )^{\mathsf{T}},$$
 
 the steepest-ascent direction in the standard real-Euclidean metric.
-A single reverse-mode AD pass on the K-recursion returns
-
-$$\nabla_{A_{ji}^{(\ell)*}} I \quad \text{for every} \quad (j, i, \ell) \in \mathcal{C}$$
-
-simultaneously, by the cheap-gradient principle. The applicability of
-the Wirtinger chain rule to arbitrary complex matrix parameters was
-formalized by Schreier & Scharf; the AD machinery here can be viewed
-as its automatic, topology-agnostic execution.
+A single reverse-mode AD pass on the K-recursion returns the gradient
+$\partial I / \partial ( A_{ji}^{(\ell)} )^{\ast}$ at every
+controllable factor $(j, i, \ell) \in \mathcal{C}$ simultaneously, by
+the cheap-gradient principle. The applicability of the Wirtinger
+chain rule to arbitrary complex matrix parameters was formalized by
+Schreier & Scharf; the AD machinery here can be viewed as its
+automatic, topology-agnostic execution.
 
 **PyTorch-specific note.** PyTorch populates each complex leaf's
-`.grad` attribute with $2 \, \nabla_{\Theta^*} f$ rather than
-$\nabla_{\Theta^*} f$ itself. The factor of two is absorbed into the
+`.grad` attribute with $2 \, \nabla_{\Theta^{\ast}} f$ rather than
+$\nabla_{\Theta^{\ast}} f$ itself. The factor of two is absorbed into the
 step size of any first-order optimizer and does not affect
 optimization behavior. The K-recursion + log-det MI pipeline is
 otherwise framework-agnostic.
@@ -299,7 +298,7 @@ otherwise framework-agnostic.
 
 The exact Wirtinger gradient is precisely the input required by PGA:
 
-$$\eta^{(t+1)} = \mathcal{P}_{\mathcal{S}}( \eta^{(t)} + \alpha_t \, \nabla_{\eta^*} I(\eta^{(t)}) ), \tag{7.2}$$
+$$\eta^{(t+1)} = \mathcal{P}_{\mathcal{S}}( \eta^{(t)} + \alpha_t \, \nabla_{\eta^{\ast}} I(\eta^{(t)}) ), \tag{7.2}$$
 
 with constant step size $\alpha_t > 0$ and Euclidean projection
 $\mathcal{P}_{\mathcal{S}}$ onto the feasible set. In code, the loop
