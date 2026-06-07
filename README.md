@@ -22,6 +22,13 @@ This is the reference implementation accompanying the paper
 Differentiation for Linear Gaussian Wireless Networks*
 (Wadayama & Na, arXiv preprint, 2026 — citation block below).
 
+See [`MATH.md`](MATH.md) for an implementation-side exposition of the
+mathematics — the linear Gaussian DAG model, the K-recursion (with the
+Hermitian-flip convention), the log-determinant MI, the
+effective-channel representation, and the Wirtinger gradient driving
+PGA — written against the library's 0-based indexing and API
+function names. The arXiv paper remains the formal version of record.
+
 ![Four DAG topologies handled by the same library](docs/figures/topology4.png)
 
 *One library, four topologies. From left to right: (a) single-link MIMO
@@ -94,6 +101,7 @@ gaussian-dag/
 │                         (see docs/README.md)
 ├── pyproject.toml        project metadata and dependencies (uv / pip)
 ├── LICENSE               MIT
+├── MATH.md               implementation-side math exposition
 └── README.md             this file
 ```
 
