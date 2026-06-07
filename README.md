@@ -17,6 +17,11 @@ factor `Θ` in the DAG, and a simple projected-gradient-ascent (PGA) loop
 drives the MI upward under Frobenius-ball or shared-budget constraints. No
 per-topology gradient derivation is required.
 
+This is the reference implementation accompanying the paper
+*Mutual Information Optimization via K-Recursion and Automatic
+Differentiation for Linear Gaussian Wireless Networks*
+(Wadayama & Na, arXiv preprint, 2026 — citation block below).
+
 ![Four DAG topologies handled by the same library](docs/figures/topology4.png)
 
 *One library, four topologies. From left to right: (a) single-link MIMO
@@ -371,19 +376,21 @@ CUDA machine, edit the single `DEVICE` line to `torch.device("cpu")`.
 
 ## Citation
 
-If you use this library in academic work, please cite the repository:
+If you use this library in academic work, please cite the accompanying paper:
 
 ```bibtex
-@software{wadayama_gaussian_dag,
-  author  = {Wadayama, Tadashi},
-  title   = {{gaussian-dag}: mutual information evaluation and
-             gradient-based optimisation for linear {G}aussian
-             directed acyclic graphs via the {K}-recursion},
-  year    = {2026},
-  version = {0.2.0},
-  url     = {https://github.com/wadayama/gaussian-dag},
+@article{wadayama2026gaussiandag,
+  title  = {Mutual Information Optimization via K-Recursion and
+            Automatic Differentiation for Linear Gaussian Wireless Networks},
+  author = {Wadayama, Tadashi and Na, Siqi},
+  year   = {2026},
+  eprint = {TBD},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.IT},
 }
 ```
+
+(The arXiv identifier will be filled in once the preprint is posted.)
 
 ### Acknowledgement
 
