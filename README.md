@@ -17,10 +17,16 @@ factor `Θ` in the DAG, and a simple projected-gradient-ascent (PGA) loop
 drives the MI upward under Frobenius-ball or shared-budget constraints. No
 per-topology gradient derivation is required.
 
-This is the reference implementation accompanying the paper
-*Mutual Information Optimization via K-Recursion and Automatic
-Differentiation for Linear Gaussian Wireless Networks*
-(Wadayama & Na, arXiv preprint, 2026 — citation block below).
+This is the reference implementation accompanying — and the **original
+source** for the methods in — the paper
+
+> T. Wadayama and Na Siqi, *Mutual Information Optimization via K-Recursion
+> and Automatic Differentiation for Linear Gaussian Wireless Networks*,
+> arXiv:2606.06982 [cs.IT], 2026. <https://arxiv.org/abs/2606.06982>
+
+Please cite this paper (see [Citation](#citation)) if you use the library;
+it is the formal version of record for the K-recursion, the log-determinant
+MI, and the Wirtinger-gradient PGA implemented here.
 
 See [`MATH.md`](MATH.md) for an implementation-side exposition of the
 mathematics — the linear Gaussian DAG model, the K-recursion (with the
@@ -384,21 +390,23 @@ CUDA machine, edit the single `DEVICE` line to `torch.device("cpu")`.
 
 ## Citation
 
-If you use this library in academic work, please cite the accompanying paper:
+If you use this library in academic work, please cite the original paper:
 
 ```bibtex
 @article{wadayama2026gaussiandag,
-  title  = {Mutual Information Optimization via K-Recursion and
-            Automatic Differentiation for Linear Gaussian Wireless Networks},
-  author = {Wadayama, Tadashi and Na, Siqi},
-  year   = {2026},
-  eprint = {TBD},
+  title         = {Mutual Information Optimization via K-Recursion and
+                   Automatic Differentiation for Linear Gaussian Wireless Networks},
+  author        = {Wadayama, Tadashi and Na, Siqi},
+  year          = {2026},
+  eprint        = {2606.06982},
   archivePrefix = {arXiv},
   primaryClass  = {cs.IT},
+  doi           = {10.48550/arXiv.2606.06982},
+  url           = {https://arxiv.org/abs/2606.06982},
 }
 ```
 
-(The arXiv identifier will be filled in once the preprint is posted.)
+Paper: <https://arxiv.org/abs/2606.06982>.
 
 ### Acknowledgement
 

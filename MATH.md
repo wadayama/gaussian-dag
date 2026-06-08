@@ -7,10 +7,10 @@
 > gradient and projected gradient ascent that maximize it under
 > network-wide constraints.
 >
-> The **formal version of record** is the arXiv preprint
+> The **formal version of record** is the arXiv paper
 > *Mutual Information Optimization via K-Recursion and Automatic
 > Differentiation for Linear Gaussian Wireless Networks*
-> (Wadayama & Na, [arXiv:TBD](https://arxiv.org/), 2026). This document
+> (Wadayama & Na, [arXiv:2606.06982](https://arxiv.org/abs/2606.06982), 2026). This document
 > is a complementary implementation-side exposition that uses the
 > library's API and 0-based indexing throughout, and points to the
 > code paths in `gaussian_dag/`. For full proofs, related work, and
@@ -373,5 +373,5 @@ under [`docs/`](docs/). For the **formal proofs** of the K-recursion
 (Proposition 1 in §IV of the paper), the MI representation
 (Proposition 2 in §IV), the effective-channel capacity attainment
 (Proposition 3 in §V), and the related-work / experimental sections,
-consult the arXiv preprint
-[arXiv:TBD](https://arxiv.org/).
+consult the arXiv paper
+[arXiv:2606.06982](https://arxiv.org/abs/2606.06982).
