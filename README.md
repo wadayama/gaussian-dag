@@ -51,9 +51,11 @@ scripts under `examples/` reproduce the corresponding MI trajectories
 
 ## Sister libraries
 
-`gaussian-dag` is one of five standalone members of the Gaussian-DAG
-family, all sharing the same K-recursion / complex-autograd /
-projected-gradient design and vendoring identical numerical primitives:
+`gaussian-dag` is one of six standalone members of the Gaussian-DAG
+family: five numerical libraries sharing the same K-recursion /
+complex-autograd / projected-gradient design (and vendoring identical
+numerical primitives), plus a symbolic sibling that derives the same
+quantities in closed form:
 
 | Library | Scope | When to use |
 | --- | --- | --- |
@@ -62,6 +64,7 @@ projected-gradient design and vendoring identical numerical primitives:
 | [`bussgang-dag`](https://github.com/wadayama/bussgang-dag) | Nonlinear node elements via Bussgang surrogate MI. | Soft-clipping PAs, low-resolution ADCs, hard-decision relays. |
 | [`fading-dag`](https://github.com/wadayama/fading-dag) | Random channel matrices via mini-batched Monte Carlo; ergodic capacity and outage. | Rayleigh / Ricean / Kronecker-correlated fading. |
 | [`gaussian-dag-isac`](https://github.com/wadayama/gaussian-dag-isac) | Fisher-information-matrix (FIM) construction for ISAC via the effective-channel representation. | Joint sensing-and-communication design, CRB / FIM-based estimation bounds. |
+| [`symbolic-dag`](https://github.com/wadayama/symbolic-dag) | Symbolic CMI, simplification, Wirtinger gradients / KKT (SymPy). | Closed-form regime thresholds, d-separation proofs, optimal-precoder conditions; explaining what the numerical libraries discover. |
 
 > **Funding.** This work was supported by JST, CRONOS, Japan
 > Grant Number **JPMJCS25N5**.
