@@ -10,10 +10,13 @@ budget `P = 36`. The end-to-end MI rises from ~4.56 nats (uniform
 allocation) to ~9.28 nats.
 
 All of this is implemented as `examples/multilayer_network.py`. This
-tutorial explains what is in that script piece by piece. To run it
-end-to-end at any time:
+tutorial explains what is in that script piece by piece. The example
+scripts plot with `matplotlib`, which lives in the optional `examples`
+extra; install it once with `uv sync --extra examples`. To run the
+script end-to-end at any time:
 
 ```bash
+uv sync --extra examples        # once, to pull in matplotlib
 uv run python examples/multilayer_network.py
 ```
 

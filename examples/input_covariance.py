@@ -27,7 +27,7 @@ theoretical optimum reached in Example 1 -- without any special-cased
 Run: `uv run python examples/input_covariance.py`
 Outputs:
     examples/results/input_covariance.npz
-    examples/figures/input_covariance_mi.pdf
+    examples/figures/input_covariance.pdf
 """
 
 from __future__ import annotations
@@ -221,7 +221,7 @@ def main() -> None:
     plt.legend(loc="lower right")
     plt.grid(True, linewidth=0.4)
     plt.tight_layout()
-    fig_path = figures_dir / "input_covariance_mi.pdf"
+    fig_path = figures_dir / "input_covariance.pdf"
     plt.savefig(fig_path)
     plt.close()
     print(f"Saved figure:  {fig_path}")

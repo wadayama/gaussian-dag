@@ -6,8 +6,8 @@ from the top-level package and listed in `../README.md`.
 
 | Module | Purpose |
 | --- | --- |
-| `__init__.py` | Public-API re-exports. The eight symbols listed in the top-level README are exactly the ones imported here. |
-| `krecursion.py` | Forward K-recursion over a DAG: `compute_k_blocks`, plus the helpers `get_K` (Hermitian-flip aware accessor) and `hermitianize` (`(A + A^H) / 2`). |
+| `__init__.py` | Public-API re-exports. The nine symbols listed in the top-level README are exactly the ones imported here. |
+| `krecursion.py` | Forward K-recursion over a DAG: `compute_k_blocks` and `compute_effective_channel` (the equivalent `(G, C)` channel representation), plus the helpers `get_K` (Hermitian-flip aware accessor) and `hermitianize` (`(A + A^H) / 2`). |
 | `information.py` | Log-det mutual information from K-blocks: `mutual_information_from_k` (Schur-complement + Cholesky) and the bare-bones `logdet_hpd` it builds on. |
 | `optimize.py` | The `pga_ascent` outer loop: constant-step projected gradient ascent on a user-supplied MI closure with an optional projector callback. Topology-agnostic. |
 | `projections.py` | Closed-form projections onto Frobenius-norm budgets: `project_frobenius_ball` (single matrix) and `project_total_power` (shared budget across many matrices). |

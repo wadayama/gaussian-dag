@@ -1,19 +1,21 @@
 # gaussian_dag — test suite
 
-29 tests covering the four library modules and a small GPU smoke layer.
+38 tests covering the four library modules and a small GPU smoke layer.
 Run the full suite from the repository root:
 
 ```bash
 uv run pytest -q
 ```
 
-Expected outcome on a CPU-only machine: **27 passed, 2 skipped** (the two
+Expected outcome on a CPU-only machine: **36 passed, 2 skipped** (the two
 GPU smoke tests skip themselves cleanly when CUDA is unavailable). On a
-CUDA-enabled machine all 29 tests should pass.
+CUDA-enabled machine all 38 tests should pass.
 
 ## Files
 
-### `test_krecursion.py` — forward K-recursion (7 tests)
+### `test_krecursion.py` — forward K-recursion + effective channel (16 tests)
+
+Forward K-recursion (7 tests):
 
 | Test | What it checks |
 | --- | --- |
@@ -24,6 +26,20 @@ CUDA-enabled machine all 29 tests should pass.
 | `test_chain_deterministic` | On a deterministic chain DAG, the K-blocks match the analytical closed form (no Monte Carlo). |
 | `test_diamond_cross_covariance` | On the diamond, the parent cross-covariance at the merging node is correctly assembled (self-consistency of the recursion formula). |
 | `test_diamond_brute_force_K33` | `K_{3,3}` from `compute_k_blocks` matches a closed-form expansion of `V_3` in terms of the independent sources `(X, Z_1, Z_2, Z_3)`; an end-to-end correctness check that never refers to intermediate K-recursion outputs. |
+
+Effective-channel representation `compute_effective_channel` (9 tests):
+
+| Test | What it checks |
+| --- | --- |
+| `test_effective_channel_G0_identity` | `G[0]` is the identity and `C[(0, 0)]` is zero (the source carries no effective noise). |
+| `test_K_equals_G_sigma_G_plus_C_chain` | The decomposition `K_{jk} = G_j Σ_X G_k^H + C_{jk}` holds for every block on a chain DAG. |
+| `test_K_equals_G_sigma_G_plus_C_diamond` | Same decomposition holds on the diamond DAG. |
+| `test_effective_channel_mi_identity` | `log det(G_M Σ_X G_M^H + C_MM) − log det C_MM` equals `mutual_information_from_k` on chain and diamond. |
+| `test_effective_channel_G_recursion_explicit` | `G_j` matches the explicit forward gain recursion on the diamond. |
+| `test_effective_channel_dX_inference` | The source dimension `d_X` is inferred from an edge into node 0 and agrees with the explicit `source_dim`. |
+| `test_effective_channel_device_agnostic_smoke` | All returned `G`/`C` tensors inherit the input dtype and device. |
+| `test_effective_channel_degenerate_and_errors` | Un-inferable `d_X`/dtype, a conflicting `source_dim`, and inherited topology checks all raise `ValueError`. |
+| `test_effective_channel_symmetrize_passthrough` | `symmetrize_self_blocks` is forwarded to `compute_k_blocks`: `C_{MM}` is Hermitian when on, identical to the un-symmetrized K-block when off. |
 
 ### `test_information.py` — log-det MI layer (6 tests)
 

@@ -37,6 +37,12 @@ examples = [
     "matplotlib>=3.10",
     "pyyaml>=6.0",
 ]
+
+# Development tooling. Declared as a PEP 735 dependency group (not an
+# optional-dependencies extra) so that a bare `uv sync` installs it by
+# default; `uv run pytest` then works on a fresh clone without any extra
+# flags. Install with pip via `pip install --group dev` (pip >= 25.1).
+[dependency-groups]
 dev = [
     "pytest>=8.0",
 ]

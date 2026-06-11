@@ -14,7 +14,7 @@ We compare the PGA trajectory against
 Run: `uv run python examples/single_link_mimo.py`
 Outputs:
     examples/results/single_link_mimo.npz
-    examples/figures/single_link_mimo_mi.pdf
+    examples/figures/single_link_mimo.pdf
 """
 
 from __future__ import annotations
@@ -199,7 +199,7 @@ def main() -> None:
     plt.legend(loc="lower right")
     plt.grid(True, linewidth=0.4)
     plt.tight_layout()
-    fig_path = figures_dir / "single_link_mimo_mi.pdf"
+    fig_path = figures_dir / "single_link_mimo.pdf"
     plt.savefig(fig_path)
     plt.close()
     print(f"Saved figure:  {fig_path}")

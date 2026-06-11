@@ -30,7 +30,7 @@ accuracy concern.)
 Run: `uv run python examples/diamond_dag.py`
 Outputs:
     examples/results/diamond_dag.npz
-    examples/figures/diamond_dag_mi.pdf
+    examples/figures/diamond_dag.pdf
 """
 
 from __future__ import annotations
@@ -257,7 +257,7 @@ def main() -> None:
     ax2.grid(True, linewidth=0.4)
 
     plt.tight_layout()
-    fig_path = figures_dir / "diamond_dag_mi.pdf"
+    fig_path = figures_dir / "diamond_dag.pdf"
     plt.savefig(fig_path)
     plt.close()
     print(f"Saved figure:  {fig_path}")

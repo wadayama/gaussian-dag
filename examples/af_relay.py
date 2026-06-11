@@ -18,7 +18,7 @@ R = sqrt(P_R / d) * I.
 Run: `uv run python examples/af_relay.py`
 Outputs:
     examples/results/af_relay.npz
-    examples/figures/af_relay_mi.pdf
+    examples/figures/af_relay.pdf
 """
 
 from __future__ import annotations
@@ -181,7 +181,7 @@ def main() -> None:
     plt.legend(loc="lower right")
     plt.grid(True, linewidth=0.4)
     plt.tight_layout()
-    fig_path = figures_dir / "af_relay_mi.pdf"
+    fig_path = figures_dir / "af_relay.pdf"
     plt.savefig(fig_path)
     plt.close()
     print(f"Saved figure:  {fig_path}")

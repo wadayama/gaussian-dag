@@ -51,7 +51,7 @@ scripts under `examples/` reproduce the corresponding MI trajectories
 
 ## Sister libraries
 
-`gaussian-dag` is one of four standalone members of the Gaussian-DAG
+`gaussian-dag` is one of five standalone members of the Gaussian-DAG
 family, all sharing the same K-recursion / complex-autograd /
 projected-gradient design and vendoring identical numerical primitives:
 
@@ -61,6 +61,7 @@ projected-gradient design and vendoring identical numerical primitives:
 | [`cmi-dag`](https://github.com/wadayama/cmi-dag) | Multi-root + conditional MI on arbitrary disjoint subsets; rate-region facets. | MAC, BC, IC, wiretap, multi-terminal rate regions. |
 | [`bussgang-dag`](https://github.com/wadayama/bussgang-dag) | Nonlinear node elements via Bussgang surrogate MI. | Soft-clipping PAs, low-resolution ADCs, hard-decision relays. |
 | [`fading-dag`](https://github.com/wadayama/fading-dag) | Random channel matrices via mini-batched Monte Carlo; ergodic capacity and outage. | Rayleigh / Ricean / Kronecker-correlated fading. |
+| [`gaussian-dag-isac`](https://github.com/wadayama/gaussian-dag-isac) | Fisher-information-matrix (FIM) construction for ISAC via the effective-channel representation. | Joint sensing-and-communication design, CRB / FIM-based estimation bounds. |
 
 > **Funding.** This work was supported by JST, CRONOS, Japan
 > Grant Number **JPMJCS25N5**.
@@ -81,7 +82,8 @@ cd gaussian-dag
 uv sync
 ```
 
-This creates `.venv/` and installs all locked dependencies. Run any
+This creates `.venv/`, installs all locked runtime dependencies, and
+(via the default `dev` dependency group) the test tooling. Run any
 subsequent command via `uv run python …` or `uv run pytest`.
 
 Confirm the install:
@@ -93,6 +95,16 @@ uv run pytest
 You should see all tests pass (a couple of GPU-only smoke tests are skipped
 when no CUDA device is available — that is expected).
 
+The runnable scripts under `examples/` additionally need `matplotlib`
+(and `pyyaml`), which live in the optional `examples` extra. Install it
+once with
+
+```bash
+uv sync --extra examples
+```
+
+and then run any example as shown below.
+
 ---
 
 ## Repository layout
@@ -100,7 +112,7 @@ when no CUDA device is available — that is expected).
 ```
 gaussian-dag/
 ├── gaussian_dag/         core library (5 modules; see gaussian_dag/README.md)
-├── tests/                pytest suite (27 tests; see tests/README.md)
+├── tests/                pytest suite (38 tests; see tests/README.md)
 ├── examples/             5 runnable scripts reproducing Fig. 4 (a)-(d) and
 │                         Fig. 5 of the paper (see examples/README.md)
 ├── docs/                 5-part Markdown tutorial walkthrough
@@ -196,7 +208,7 @@ All symbols below are re-exported from the top-level package:
 
 ```python
 from gaussian_dag import (
-    compute_k_blocks, get_K, hermitianize,
+    compute_k_blocks, compute_effective_channel, get_K, hermitianize,
     logdet_hpd, mutual_information_from_k,
     pga_ascent,
     project_frobenius_ball, project_total_power,
