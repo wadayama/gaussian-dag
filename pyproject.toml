@@ -1,6 +1,6 @@
 [project]
 name = "gaussian-dag"
-version = "0.2.0"
+version = "0.3.0"
 description = "Mutual information evaluation and gradient-based optimisation for linear Gaussian directed acyclic graphs (DAGs) via the K-recursion."
 readme = "README.md"
 requires-python = ">=3.12"

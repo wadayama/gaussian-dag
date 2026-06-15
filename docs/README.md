@@ -14,3 +14,7 @@ multi-layer Gaussian network with shared-budget joint optimisation.
 Each tutorial is self-contained and includes runnable code snippets. The
 examples under `../examples/` accompany Tutorials 2–5 as ready-to-run
 scripts.
+
+See also [`builder-notes.md`](builder-notes.md) for the named-node
+`GaussianDAG` builder — a pure additive convenience over the functional API
+(implementation notes and supported profiles).

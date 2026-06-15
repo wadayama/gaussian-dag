@@ -203,6 +203,38 @@ print(f"final MI = {history[-1]:.4f} nats")
 For this 3×3 single-link channel, PGA converges to the classical
 water-filling optimum (see `examples/single_link_mimo.py`).
 
+### Alternatively: build the DAG with named nodes
+
+The same DAGs can be declared with the named-node `GaussianDAG` builder, a
+thin convenience layer that *lowers* to the functional core above (no numerics
+change). You name nodes, give each its parents and the matrix on each incoming
+edge, and ask for a quantity:
+
+```python
+import torch
+from gaussian_dag import GaussianDAG
+
+torch.manual_seed(0)
+d, sigma = 3, 0.5
+H = torch.randn(d, d, dtype=torch.complex128)
+Sigma_X = torch.eye(d, dtype=torch.complex128)
+Sigma_Z = (sigma ** 2) * torch.eye(d, dtype=torch.complex128)
+
+dag = GaussianDAG()
+dag.add_source("X", cov=Sigma_X)
+dag.add_node("Y", parents={"X": H}, noise=Sigma_Z)
+
+mi = dag.mi("X", "Y")                # I(X; Y) in nats (same value as above)
+Sigma_Y = dag.cov("Y")              # self-covariance block of node Y
+```
+
+The builder is a pure, backward-compatible addition; the index-based
+functional API stays exactly as it is. Matrices may be given as concrete
+tensors (above) or by name and resolved at query time via `mi(..., bind={...})`.
+This library implements the *single-pair* (`mi(source, target)`) and
+*single-root* profiles; see `gaussian_dag/builder.py` and
+`docs/builder-notes.md` for the full surface and supported profiles.
+
 ---
 
 ## Public API
@@ -211,6 +243,7 @@ All symbols below are re-exported from the top-level package:
 
 ```python
 from gaussian_dag import (
+    GaussianDAG,
     compute_k_blocks, compute_effective_channel, get_K, hermitianize,
     logdet_hpd, mutual_information_from_k,
     pga_ascent,
@@ -220,6 +253,7 @@ from gaussian_dag import (
 
 | Symbol | Module | Purpose |
 | --- | --- | --- |
+| `GaussianDAG()` | `builder` | Named-node declarative builder: `add_source(name, cov=…)`, `add_node(name, parents={…}, noise=…)`, then `mi(source, target)` / `cov(node)`. Lowers to `compute_k_blocks` + `mutual_information_from_k`; a pure additive convenience over the functional API. |
 | `compute_k_blocks(num_nodes, parents, edge_mats, input_cov, noise_covs, *, symmetrize_self_blocks=True)` | `krecursion` | Forward pass of the K-recursion. Returns a dict of canonical blocks `K[(j,k)]` for `0 ≤ k ≤ j < num_nodes`. |
 | `compute_effective_channel(num_nodes, parents, edge_mats, noise_covs, *, source_dim=None, symmetrize_self_blocks=True)` | `krecursion` | Collapse the DAG to an equivalent linear Gaussian channel `Y = G_M X + R_M`. Returns `(G, C)`: effective channel matrices `G[j]` (shape `d_j × d_X`, `G[0]=I`) and effective-noise covariance blocks `C[(j,k)]` (same canonical convention as `K`). Satisfies `K_{jk} = G_j Σ_X G_k^H + C_{jk}`; MI `= log det(G_M Σ_X G_M^H + C_MM) − log det C_MM`. Differentiable. |
 | `get_K(K, a, b)` | `krecursion` | Read `K_{ab}` from the canonical dict, applying the Hermitian flip `K_{ab} = K_{ba}^H` when `a < b`. |
