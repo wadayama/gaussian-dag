@@ -51,11 +51,12 @@ scripts under `examples/` reproduce the corresponding MI trajectories
 
 ## Sister libraries
 
-`gaussian-dag` is one of six standalone members of the Gaussian-DAG
-family: five numerical libraries sharing the same K-recursion /
+`gaussian-dag` is one of several standalone members of the Gaussian-DAG
+family: numerical libraries sharing the same K-recursion /
 complex-autograd / projected-gradient design (and vendoring identical
-numerical primitives), plus a symbolic sibling that derives the same
-quantities in closed form:
+numerical primitives), a symbolic sibling that derives the same
+quantities in closed form, and the shared projected-gradient core that
+they all build on:
 
 | Library | Scope | When to use |
 | --- | --- | --- |
@@ -65,6 +66,7 @@ quantities in closed form:
 | [`fading-dag`](https://github.com/wadayama/fading-dag) | Random channel matrices via mini-batched Monte Carlo; ergodic capacity and outage. | Rayleigh / Ricean / Kronecker-correlated fading. |
 | [`gaussian-dag-isac`](https://github.com/wadayama/gaussian-dag-isac) | Fisher-information-matrix (FIM) construction for ISAC via the effective-channel representation. | Joint sensing-and-communication design, CRB / FIM-based estimation bounds. |
 | [`symbolic-dag`](https://github.com/wadayama/symbolic-dag) | Symbolic CMI, simplification, Wirtinger gradients / KKT (SymPy). | Closed-form regime thresholds, d-separation proofs, optimal-precoder conditions; explaining what the numerical libraries discover. |
+| [`pga-toolbox`](https://github.com/wadayama/pga-toolbox) | Shared projected-gradient ascent/descent core (fixed-step / Armijo / SPG / batched multi-start) for complex Wirtinger & real parameters. | The optimiser every numerical library above vendors; depend on it directly for custom constrained objectives. |
 
 > **Funding.** This work was supported by JST, CRONOS, Japan
 > Grant Number **JPMJCS25N5**.
