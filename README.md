@@ -55,8 +55,8 @@ scripts under `examples/` reproduce the corresponding MI trajectories
 family: numerical libraries sharing the same K-recursion /
 complex-autograd / projected-gradient design (and vendoring identical
 numerical primitives), a symbolic sibling that derives the same
-quantities in closed form, and the shared projected-gradient core that
-they all build on:
+quantities in closed form, the shared projected-gradient core that
+they all build on, and an augmented-Lagrangian constraint layer on top of it:
 
 | Library | Scope | When to use |
 | --- | --- | --- |
@@ -67,6 +67,7 @@ they all build on:
 | [`gaussian-dag-isac`](https://github.com/wadayama/gaussian-dag-isac) | Fisher-information-matrix (FIM) construction for ISAC via the effective-channel representation. | Joint sensing-and-communication design, CRB / FIM-based estimation bounds. |
 | [`symbolic-dag`](https://github.com/wadayama/symbolic-dag) | Symbolic CMI, simplification, Wirtinger gradients / KKT (SymPy). **Ships an interactive GUI demo** — *draw* a DAG and read off the closed-form CMI, its Wirtinger gradient, and the d-separation verdict (with code export). | Closed-form regime thresholds, d-separation proofs, optimal-precoder conditions; explaining what the numerical libraries discover — or a no-code way to explore them. |
 | [`pga-toolbox`](https://github.com/wadayama/pga-toolbox) | Shared projected-gradient ascent/descent core (fixed-step / Armijo / SPG / batched multi-start) for complex Wirtinger & real parameters. | The optimiser every numerical library above vendors; depend on it directly for custom constrained objectives. |
+| [`auglag-toolbox`](https://github.com/wadayama/auglag-toolbox) | Augmented-Lagrangian / penalty constraint handling layered on `pga-toolbox`: nonlinear, coupled, covariance-dependent constraints via multipliers, with KKT certification and batched multi-start. | Per-node power and other projection-free constraints on any objective above (e.g. relay node power `tr(R K_jj Rᴴ) ≤ P`). |
 
 > **Funding.** This work was supported by JST, CRONOS, Japan
 > Grant Number **JPMJCS25N5**.
