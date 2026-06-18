@@ -65,6 +65,37 @@ def test_logdet_hpd_vs_slogdet():
 
 
 # ============================================================
+# Test 9b: logdet_hpd is batch-safe over a leading batch dimension.
+# ============================================================
+
+
+def test_logdet_hpd_batched():
+    """A leading batch dim yields one log-det per element, matching the scalar path."""
+    d, B = 3, 5
+    mats = torch.stack([_hermitian_psd(d, seed=100 + b) for b in range(B)])  # (B, d, d)
+    out = logdet_hpd(mats)
+    assert out.shape == (B,)
+    expected = torch.linalg.slogdet(mats).logabsdet
+    assert torch.allclose(out, expected, atol=1e-10)
+    for b in range(B):
+        assert torch.allclose(out[b], logdet_hpd(mats[b]), atol=1e-12)
+
+
+def test_mutual_information_from_k_batched():
+    """Batched K-blocks give one MI per element, matching per-element evaluation."""
+    d, B = 2, 4
+    H = torch.stack([_randn_complex(d, d, seed=200 + b) for b in range(B)])  # (B, d, d)
+    sigma_x = _hermitian_psd(d, seed=11)
+    sigma_1 = _hermitian_psd(d, seed=12)
+    K = compute_k_blocks(2, {1: [0]}, {(1, 0): H}, sigma_x, {1: sigma_1})
+    mi_b = mutual_information_from_k(K, 1, 0)
+    assert mi_b.shape == (B,)
+    for b in range(B):
+        Kb = compute_k_blocks(2, {1: [0]}, {(1, 0): H[b]}, sigma_x, {1: sigma_1})
+        assert torch.allclose(mi_b[b], mutual_information_from_k(Kb, 1, 0), atol=1e-10)
+
+
+# ============================================================
 # Test 10: Single-link MIMO MI matches classical log-det formula (Milestone 5 core).
 # Model: V_0 = X ~ CN(0, Sigma_X), V_1 = Y = H X + Z_1, Z_1 ~ CN(0, Sigma_1).
 # Classical:

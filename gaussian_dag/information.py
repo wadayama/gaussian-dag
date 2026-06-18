@@ -32,8 +32,10 @@ def logdet_hpd(A: torch.Tensor, jitter: float = 0.0) -> torch.Tensor:
     opaque PyTorch error propagate out of the autograd graph.
 
     Args:
-        A: Hermitian positive-definite matrix (shape d x d, complex or
-            real). With the default ``jitter=0`` the input must be
+        A: Hermitian positive-definite matrix, shape ``(..., d, d)`` (complex
+            or real). A leading batch dimension is supported: each ``(d, d)``
+            slice is treated independently and the result has the batch shape
+            ``(...)``. With the default ``jitter=0`` the input must be
             strictly positive-definite; otherwise the Cholesky factorisation
             fails and a ``ValueError`` is raised (see Raises). A
             rank-deficient or merely PSD input can be admitted by passing
@@ -47,7 +49,9 @@ def logdet_hpd(A: torch.Tensor, jitter: float = 0.0) -> torch.Tensor:
             experiment that uses it.
 
     Returns:
-        Real scalar tensor: log det A (natural log; nats convention).
+        Real tensor of shape ``(...)``: log det A (natural log; nats
+        convention). A single ``(d, d)`` input yields a 0-dim scalar; a
+        batched ``(..., d, d)`` input yields one log-det per batch element.
 
     Raises:
         ValueError: if A (after optional jitter) is not strictly positive
@@ -65,18 +69,29 @@ def logdet_hpd(A: torch.Tensor, jitter: float = 0.0) -> torch.Tensor:
         d = A.shape[-1]
         A = A + jitter * torch.eye(d, dtype=A.dtype, device=A.device)
     L, info = torch.linalg.cholesky_ex(A, check_errors=False)
-    info_value = int(info.item())
-    if info_value != 0:
+    if torch.any(info != 0):
+        flat = info.reshape(-1)
+        first = int(torch.nonzero(flat != 0, as_tuple=False)[0])
+        order = int(flat[first])
+        n_fail, total = int((flat != 0).sum()), int(flat.numel())
+        scope = (
+            f"input matrix is not Hermitian positive definite "
+            f"(Cholesky failed at leading minor of order {order})"
+            if total == 1 else
+            f"{n_fail} of {total} batched input matrices are not Hermitian "
+            f"positive definite (first failure at batch index {first}, "
+            f"Cholesky failed at leading minor of order {order})"
+        )
         raise ValueError(
-            "logdet_hpd: input matrix is not Hermitian positive definite "
-            f"(Cholesky failed at leading minor of order {info_value}). "
+            "logdet_hpd: " + scope + ". "
             "Common remedies: (1) ensure the terminal noise covariance is "
             "strictly positive definite (the paper's regularity assumption); "
             "(2) pass jitter>0 to logdet_hpd / mutual_information_from_k "
             "to absorb near-singularity; (3) inside pga_ascent, reduce "
             "step_size so that iterates remain in the positive-definite cone."
         )
-    return 2.0 * torch.log(torch.diagonal(L).real).sum()
+    diag = torch.diagonal(L, dim1=-2, dim2=-1).real
+    return 2.0 * torch.log(diag).sum(-1)
 
 
 def mutual_information_from_k(
@@ -102,8 +117,11 @@ def mutual_information_from_k(
             Sigma_Y and Sigma_{Y|X}.
 
     Returns:
-        Real scalar tensor: I(X; Y) in nats. Differentiable through
-        the K-blocks via PyTorch autograd.
+        Real tensor: I(X; Y) in nats, differentiable through the K-blocks via
+        PyTorch autograd. A 0-dim scalar for unbatched K-blocks; if the blocks
+        carry a leading batch dimension ``(..., d, d)`` (e.g. many parameter or
+        configuration settings evaluated at once), the result has shape ``(...)``
+        — one MI value per batch element.
     """
     K_yy = get_K(K, output_node, output_node)
     K_yx = get_K(K, output_node, input_node)
