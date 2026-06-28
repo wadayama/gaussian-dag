@@ -249,9 +249,7 @@ The K-recursion is the more general primitive — it exposes the
 intermediate covariances and parent cross-covariances at merging
 nodes that internal constraints, multiple sinks, and downstream
 Bussgang-type linearizations require. The effective-channel
-representation is more compact for a single source–sink MI and is
-the natural interface for ISAC FIM construction (see the sister
-library [`gaussian-dag-isac`](https://github.com/wadayama/gaussian-dag-isac)).
+representation is more compact for a single source–sink MI.
 
 ---
 
